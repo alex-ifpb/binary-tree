@@ -382,3 +382,4 @@ class BinarySearchTree:
         if node.left:
             self.__stack.append(node.left)
         return node.data
+    
