@@ -84,6 +84,19 @@ class BinarySearchTree:
         '''
         return self.__root == None
 
+    def height(self)->int:
+        '''
+        Returns the height of the tree.
+        -1 if the tree is empty. The root node has height 0.
+        '''
+        return self.__height(self.__root)
+    
+    def __height(self, root:Node)->int:
+        if root is None:
+            return -1
+        else:
+            return 1 + max(self.__height(root.left), self.__height(root.right))
+
     def add(self, data:any):
         '''
         Adds a new node to the tree.
@@ -190,13 +203,27 @@ class BinarySearchTree:
             self.__postorder(node.right)
             print(f'{node.data} ',end='')
 
-    # delete all nodes of the tree
-    def deleteTree(self):
-        # garbage collector fará o trabalho de remoção dos nós automaticamente. 
+    def clear(self):
+        '''
+        Deletes all nodes of the tree.
+        '''
+        # garbage collector will do the work of removing the nodes automatically.
         self.__root = None
 
-    # delete a node with the given key and return its data
-    def deleteNode(self, key:any)->'Node':
+ 
+    def delete(self, key:any)->'Node':
+        '''
+        Deletes a node with the given key and returns its data.
+        Arguments
+        ---------
+        key (any): the key used to find the node to be deleted.
+        Returns
+        -------
+        data (any): the data corresponding to the key node. If the key is not found
+        return None.
+        '''
+        if self.__root is None:
+            return None
         node = self.__searchData(key,self.__root)
         if node is not None:
             self.__root = self.__deleteNode(self.__root, key)
@@ -205,26 +232,31 @@ class BinarySearchTree:
             return None
         
     
-    # Dado um nó de uma BST e uma chave busca, este método
-    # deleta o nó que contém a chave e devolve o novo nó raiz
     def __deleteNode(self,root:'Node', key:any):
-        # Caso primário: não há raiz
+        '''
+        Deletes a node with the given key and returns the new root node.
+        Arguments
+        ---------
+        root (Node): the node that is the root of the search.
+        key (any): the key used to find the node to be deleted.
+        '''
+        # Primary case: there is no root
         if root is None: 
             return root
   
-        # Se a chave a ser deletada é menor do que a chave do nó raiz 
-        # (da vez), então a chave se encontra na subárvore esquerda
+        # If the key to be deleted is smaller than the root's key
+        # then it lies in left subtree
         if key < root.data:
             root.left = self.__deleteNode(root.left, key) 
-        # Se a chave a ser deletada é maior do que a chave do nó raiz (da vez),
-        # então a chave se encontra na subárvore esquerda
+
+        # If the key to be deleted is greater than the root's key,
+        # then it lies in right subtree
         elif(key > root.data):
             root.right = self.__deleteNode(root.right, key) 
   
-        # Se a chave é igual à chave do nó raiz, então estamos no nó 
-        # a ser removido
+        # If key is same as root's key, then this is the node to be deleted
         else:
-            # (1) Nó com apenas 1 filho ou nenhum filho
+            # (1) Node with only one child or no child
             if root.left is None : 
                 temp = root.right  
                 root = None 
@@ -235,37 +267,46 @@ class BinarySearchTree:
                 root = None
                 return temp 
   
-            # (2) Nó com dois filhos: obtem o sucessor inorder
-            # (o menor nó da subárvore direita) 
+            # (2) Node with two children: Get the inorder successor
+            # (smallest in the right subtree)
             temp = self.__minValueNode(root.right) 
   
-            # copia o conteúdo do sucessor inorder para este nós
+            # Copy the inorder successor's content to this node
             root.data = temp.data 
   
-            # Deletao sucessor inorder
+            # Delete the inorder successor
             root.right = self.__deleteNode(root.right , temp.data)
 
         return root
 
-    # Dada uma BST não vazia, retorna o nó
-    # com a menor chave encontrada na árvore. Note que a árvore
-    # inteira não precisa ser percorrida
+
     def __minValueNode(self, node:'Node')->'Node':
+        '''
+        Returns the node with the minimum key value found in the tree.
+        Note that the entire tree does not need to be searched.
+        Arguments
+        ---------
+        node (Node): the node that is the root of the search.   
+        '''
         current = node 
   
-        # loop para baixo a fim de encontrar a folha mais a esquerda
+        # Loop down to find the leftmost leaf
         while(current.left is not None): 
             current = current.left  
   
         return current
 
-    # Dada uma BST não vazia, retorna o nó
-    # com o maior valor de chave encontrada na árvore. Note que a árvore
-    # inteira não precisa ser percorrida 
     def __maxValueNode(self, node:'Node')->'Node':
+        '''
+        Returns the node with the maximum key value found in the tree.
+        Note that the entire tree does not need to be searched.
+        Arguments
+        ---------
+        node (Node): the node that is the root of the search.
+        '''
         current = node 
   
-         # loop para baixo a fim de encontrar a folha mais a direita
+         # loop down to find the rightmost leaf
         while(current.right is not None): 
             current = current.right
   
@@ -278,6 +319,12 @@ class BinarySearchTree:
         return self.__preorderToStr(self.__root)[:-2]
 
     def __preorderToStr(self, root)->str:
+        '''
+        Returns a string representation of the tree in preorder traversal.
+        Arguments
+        ---------
+        root (Node): the node that is the root of the traverse.
+        '''
         if (root is None):
             return ''
     
@@ -348,7 +395,7 @@ class BinarySearchTree:
     
     def build(self,values:List[any]):
         '''
-        Builds a binary search tree in the order the nodes appear in
+        Builds a binary search tree in the order the values appear in
         the list.        
         Precondition: the tree must be empty
 
@@ -362,10 +409,69 @@ class BinarySearchTree:
 
         for element in values:
             self.add(element)
+    
+    def balance(self):
+        '''
+        Balances the tree.
+        '''
+        nodes = []
+        self.__saveToArray(self.__root, nodes)
+        self.__root =  self.__rebuild(nodes, 0, len(nodes) - 1)
+
+    def __saveToArray(self, root:Node,nodes:List[Node]):   
+        '''
+        A recursive method to get an array of nodes in inorder
+        traversal of a given binary tree.
+        Arguments
+        ---------
+        root (Node): the node of the tree.
+        nodes (List[Node]): the list that stores the nodes visited
+        in inorder traversal.
+        Note
+        ----
+        Method of suport to the method __rebuild().
+        '''         
+        if not root:  # Base case
+            return
+        
+        # Store nodes in Inorder traversal
+        self.__saveToArray(root.left,nodes)
+        nodes.append(root)
+        self.__saveToArray(root.right,nodes)          
+
+    def __rebuild(self, sorted_list:List[Node],start_index:int,end_index:int):
+        '''
+        A recursive method to rebuild the BST from a sorted array in
+        order to balance it.
+        The method computes the middle element of the list and makes it
+        the root. Then, it recursively builds the left and right subtrees
+        calling itself for the left and right parts of the list.
+
+
+        Arguments
+        ---------
+        sorted_list (List[Node]): the list of nodes in inorder traversal.
+        start_index (int): the start index of the list.
+        end_index (int): the end index of the list.
+        Note
+        ----
+        Method of suport to the public method balance().
+        '''        
+        if start_index>end_index: # base case 
+            return None
+    
+        # Get the middle element and make it root 
+        middle_index=(start_index + end_index)//2
+        no = sorted_list[middle_index]
+    
+        # Using index in Inorder traversal, construct left and right subtress
+        no.left = self.__rebuild(sorted_list,start_index,middle_index-1)
+        no.right= self.__rebuild(sorted_list,middle_index+1,end_index)
+        return no 
 
     def __iter__(self):
         '''
-        Returns an iterator for the tree.
+        Allow the tree to be iterated in preorder traversal.
         '''
         self.__stack = [self.__root]
         return self
@@ -382,4 +488,13 @@ class BinarySearchTree:
         if node.left:
             self.__stack.append(node.left)
         return node.data
+    
+    def __contains__(self, key:any)->bool:
+        '''
+        Verifies if a key is present in the tree.
+        Method is called when the operator "in" is used.
+        '''
+        value = self.search(key)
+        return True if value else None
+
     

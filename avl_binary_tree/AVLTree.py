@@ -122,6 +122,19 @@ class AVLTree(object):
         '''
         return self.__root == None
 
+    def height(self)->int:
+        '''
+        Returns the height of the tree.
+        -1 if the tree is empty. The root node has height 0.
+        '''
+        return self.__height(self.__root)
+    
+    def __height(self, root:Node)->int:
+        if root is None:
+            return -1
+        else:
+            return 1 + max(self.__height(root.left), self.__height(root.right))
+
     def search(self, key:any )->any:
         '''
         Perform a search in AVL Tree to find the node whose key is equal to "key" argument.
@@ -174,7 +187,7 @@ class AVLTree(object):
             return 1 + self.__count(node.left) + self.__count(node.right)
 
 
-    def insert(self, key:object):
+    def add(self, value:object):
         '''
         Insert a new node in AVL Tree recursively from root.
         AVL tree is a self-balancing Binary Search Tree (BST) where the 
@@ -187,19 +200,19 @@ class AVLTree(object):
         data (any): the data to be stored in the new node.
         '''
         if(self.__root == None):
-            self.__root = Node(key)
+            self.__root = Node(value)
         else:
-            self.__root = self.__insert(self.__root, key)
+            self.__root = self.__add(self.__root, value)
   
-    def __insert(self, root:Node, key:any):
+    def __add(self, root:Node, key:any):
         # Step 1 - Performs a BST recursion to add the node in 
         # the right place
         if not root: 
             return Node(key) 
         elif key < root.value: 
-            root.left = self.__insert(root.left, key) 
+            root.left = self.__add(root.left, key) 
         else: 
-            root.right = self.__insert(root.right, key) 
+            root.right = self.__add(root.right, key) 
   
         # Step 2 
         # The current node must be one of the ancestors of the newly
@@ -424,7 +437,16 @@ class AVLTree(object):
         key (object): the key value to be deleted from AVL Tree
         '''
         if(self.__root is not None):
+            node = self.__searchData(key, self.__root)
+            load = node.value if node is not None else None
             self.__root = self.__delete(self.__root, key)
+            if load is None:
+                return None
+            else:
+                return load
+        else:
+            return None
+        
         
 
     def __delete(self, root:Node, key:object)->Node: 
@@ -493,7 +515,14 @@ class AVLTree(object):
             return self.__leftRotate(root) 
   
         return root  
-    
+
+    def clear(self):
+        '''
+        Deletes all nodes of the tree.
+        '''
+        # garbage collector will do the work of removing the nodes automatically.
+        self.__root = None
+
     def __str__(self):
         '''
         Returns a string representation of the AVL Tree
@@ -568,7 +597,7 @@ class AVLTree(object):
     
     def build(self,values:List[any]):
         '''
-        Builds a binary search tree in the order the nodes appear in
+        Builds a balanced binary search tree in the order the nodes appear in
         the list.        
         Precondition: the tree must be empty
 
@@ -581,7 +610,7 @@ class AVLTree(object):
             return None 
 
         for element in values:
-            self.insert(element)
+            self.add(element)
     
     def __iter__(self):
         '''
@@ -602,3 +631,11 @@ class AVLTree(object):
         if node.left:
             self.__stack.append(node.left)
         return node.value
+
+    def __contains__(self, key:any)->bool:
+        '''
+        Verifies if a key is present in the tree.
+        Method is called when the operator "in" is used.
+        '''
+        value = self.search(key)
+        return True if value else None

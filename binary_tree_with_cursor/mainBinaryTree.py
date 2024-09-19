@@ -3,6 +3,7 @@ from BinaryTree import BinaryTree
 # tree = BinaryTree()
 # tree.build([1,2,3,None,4,5,None])
 # tree.treeview()
+# exit()
 '''
  _1_ 
 /   \
@@ -11,6 +12,7 @@ from BinaryTree import BinaryTree
  4 5
 '''
 tree = BinaryTree(30)
+# tree.createRoot(30)
 tree.addLeftChild(15)
 tree.addRightChild(17)
 tree.downLeft()
@@ -31,6 +33,7 @@ print('Postorder traversal:')
 tree.traversal(BinaryTree.postorder)
 print('__str__() result')
 print(tree)
+print('Height:',tree.height())
 
 key = 150
 if( tree.search( key )):
@@ -56,6 +59,10 @@ print('Iterating over tree:')
 for node in tree:
     print(node,end= ' ')
 
+print('\n__contains__ test:')
+key = 52
+if key in tree:
+    print('\tKey',key,'is in the tree')
 tree.clear()
 print(tree)
 

@@ -82,20 +82,44 @@ class BinaryTree:
             self.__root = None
         # O cursor é um apontador usado para navegar na árvore (sem mexer no root)
         self.__cursor = self.__root
+    
+    def createRoot(self, data:object):
+        '''
+        Creates the root node of the tree.
+        Arguments
+        ---------
+        data (object): the data to be stored in the root node.
+        '''
+        if self.__root is None:
+            self.__root = Node(data)
+            self.__cursor = self.__root
+
 
     def isEmpty(self)->bool:
         '''
         Checks if the tree is empty.
         '''
         return self.__root == None
+
+    def height(self)->int:
+        '''
+        Returns the height of the tree.
+        '''
+        return self.__height(self.__root)
     
-    def getRoot(self)->'Node':
+    def __height(self, root:Node)->int:
+        if root is None:
+            return -1
+        else:
+            return 1 + max(self.__height(root.left), self.__height(root.right))
+
+    def getRoot(self)->any:
         '''
         Gets the data stored in the root node.
         '''
         return self.__root.data if self.__root != None else None
 
-    def getCursor(self)->'Node':
+    def getCursor(self)->any:
         '''
         Gets the data stored in the noted pointed to cursor.
         '''
@@ -223,6 +247,7 @@ class BinaryTree:
         Deletes all nodes of the tree.
         '''
         self.__root = None
+        self.__cursor = None
 
     # o cursor tem que estar posicionado no nó pai
     # do nó que vai ser removido
@@ -340,7 +365,8 @@ class BinaryTree:
     
     def build(self,values:List[any]):
         '''
-        Builds a binary tree from a list of values.
+        Builds a binary tree from a list of values. This method inserts the values
+        in the tree in level order. Put None in the list to represent a missing node.
         Precondition: the tree must be empty
         Arguments
         ---------
@@ -384,7 +410,10 @@ class BinaryTree:
         '''
         Returns an iterator for the tree.
         '''
-        self.__stack = [self.__root]
+        if self.__root is None:
+            self.__stack = []
+        else:
+            self.__stack = [self.__root]
         return self
 
     def __next__(self):
@@ -399,6 +428,13 @@ class BinaryTree:
         if node.left:
             self.__stack.append(node.left)
         return node.data
+    
+    def __contains__(self, key:any)->bool:
+        '''
+        Verifies if a key is present in the tree.
+        Method is called when the operator "in" is used.
+        '''
+        return self.search(key)
 
  
 

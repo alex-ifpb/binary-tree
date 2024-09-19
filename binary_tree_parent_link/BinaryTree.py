@@ -2,7 +2,7 @@ class Node:
     '''
     Classe that models a dinamic node of a binary tree.
     '''
-    def __init__(self,data:object):
+    def __init__(self,data:object = None):
         '''
         Constructor that initializes a node with a data and
         without children.'''
@@ -76,15 +76,33 @@ class BinaryTree:
     root: reference to the root node.
     cursor: reference to the node pointed by cursor.
     '''
-    def __init__(self, data_root:object):
+    preorder  = 0
+    inorder   = 1
+    postorder = 2
+
+    def __init__(self, data_root:object = None):
         '''
         Initializes the tree with a root node.
         Arguments
         ---------
         data_root (object): the data to be stored in the root node.
         '''
-        self.__root = Node(data_root)
+        if data_root is not None:
+            self.__root = Node(data_root)
+        else:
+            self.__root = None
         self.__cursor = self.__root
+    
+    def createRoot(self, data:object):
+        '''
+        Creates the root node of the tree.
+        Arguments
+        ---------
+        data (object): the data to be stored in the root node.
+        '''
+        if self.__root is None:
+            self.__root = Node(data)
+            self.__cursor = self.__root
 
     def isEmpty(self)->bool:
         '''
@@ -104,6 +122,19 @@ class BinaryTree:
         '''
         return self.__cursor.data if self.__cursor != None else None
 
+    def height(self)->int:
+        '''
+        Returns the height of the tree.
+        -1 if the tree is empty. The root node has height 0.
+        '''
+        return self.__height(self.__root)
+    
+    def __height(self, root:Node)->int:
+        if root is None:
+            return -1
+        else:
+            return 1 + max(self.__height(root.left), self.__height(root.right))
+
     def back(self):
         ''' 
         Moves the cursor to the parent node.
@@ -121,7 +152,7 @@ class BinaryTree:
         Moves the cursor to the left child of the node pointed by cursor.
         If there is no left child, don't do anything.
         '''
-        if(self.__cursor.hasLeftChild()): 
+        if(self.__cursor is not None and self.__cursor.hasLeftChild()): 
             self.__cursor = self.__cursor.left
             
     def downRight(self)->'Node':
@@ -129,7 +160,7 @@ class BinaryTree:
         Moves the cursor to the right child of the node pointed by cursor.
         If there is no right child, don't do anything.
         '''     
-        if(self.__cursor.hasRightChild()): 
+        if(self.__cursor is not None and self.__cursor.hasRightChild()): 
             self.__cursor = self.__cursor.right
 
     def addLeftChild(self, data:object):
@@ -140,7 +171,7 @@ class BinaryTree:
         ---------
         data (object): the data to be stored in the new node.
         '''
-        if(not self.__cursor.hasLeftChild()):
+        if(self.__cursor is not None and not self.__cursor.hasLeftChild()):
             self.__cursor.addLeft(data)
 
     def addRightChild(self, data:object):
@@ -151,7 +182,7 @@ class BinaryTree:
         ---------
         data (object): the data to be stored in the new node.
         '''
-        if(not self.__cursor.hasRightChild()):
+        if(self.__cursor is not None and not self.__cursor.hasRightChild()):
             self.__cursor.addRight(data)
 
     def __len__(self)->int:
@@ -187,47 +218,53 @@ class BinaryTree:
         else:
             return self.__searchData( key, node.right)
 
-    def preorder(self):
+    def traversal(self, order:int = None):
         '''
-        Displays the nodes of the tree in pre-order traversal.
+        Print the nodes of the in pre-order, in-order or post-order traversal.
+        Arguments
+        ---------
+        order (int): the order of traversal. The possible values are:
+        preorder, inorder, postorder. If no order is given, the traversal
+        is performed in pre-order.
         '''
-        self.__preorder(self.__root)
+        if order == None:
+            self.__preorder(self.__root)
+        elif order == self.__class__.preorder:
+            self.__preorder(self.__root)
+        elif order == self.__class__.inorder:
+            self.__inorder(self.__root)
+        elif order == self.__class__.postorder:
+            self.__postorder(self.__root)
+        else:
+            raise ValueError('Invalid order value')
+        print()
 
-    def inorder(self):
-        '''
-        Displays the nodes of the tree in in-order traversal.
-        '''
-        self.__inorder(self.__root)
 
-    def postorder(self):
-        '''
-        Displays the nodes of the tree in post-order traversal.
-        '''
-        self.__postorder(self.__root)
-        
     def __preorder(self, node):
-        if( node is not None):
+        if( node != None):
             print(f'{node.data} ',end='')
             self.__preorder(node.left)
             self.__preorder(node.right)
 
     def __inorder(self, node):
-        if( node is not None):
+        if( node != None):
             self.__inorder(node.left)
             print(f'{node.data} ',end='')
             self.__inorder(node.right)
 
     def __postorder(self, node):
-        if( node is not None):
+        if( node != None):
             self.__postorder(node.left)
             self.__postorder(node.right)
             print(f'{node.data} ',end='')
+
 
     def clear(self):
         '''
         Deletes all nodes of the tree.
         '''
         self.__root = None
+        self.__cursor = None
 
     # o cursor tem que estar posicionado no nó pai
     # do nó que vai ser removido
@@ -257,7 +294,67 @@ class BinaryTree:
         elif root.right == None:
             if root.left.data == key:
                 root.left = None
-    
+
+    def treeview(self):
+        '''
+        Displays the tree in a visual way, in order to understand where
+        nodes were inserted.
+        Note: call this method only for small trees.
+        '''
+        if self.__root is None:
+            return
+        lines, *_ = self.__visual(self.__root)
+        for line in lines:
+            print(line)
+
+    def __visual(self, node):
+        """
+        Returns list of strings, width, height, and horizontal coordinate
+        of the root.
+        """
+        # No child.
+        if node.right is None and node.left is None:
+            line = f'{node.data}'
+            width = len(line)
+            height = 1
+            middle = width // 2
+            return [line], width, height, middle
+
+        # Only left child.
+        if node.right is None:
+            lines, n, p, x = self.__visual(node.left)
+            s = f'{node.data}'
+            u = len(s)
+            first_line = (x + 1) * ' ' + (n - x - 1) * '_' + s
+            second_line = x * ' ' + '/' + (n - x - 1 + u) * ' '
+            shifted_lines = [line + u * ' ' for line in lines]
+            return [first_line, second_line] + shifted_lines, n + u, p + 2, n + u // 2
+
+        # Only right child.
+        if node.left is None:
+            lines, n, p, x = self.__visual(node.right)
+            s = f'{node.data}'
+            u = len(s)
+            first_line = s + x * '_' + (n - x) * ' '
+            second_line = (u + x) * ' ' + '\\' + (n - x - 1) * ' '
+            shifted_lines = [u * ' ' + line for line in lines]
+            return [first_line, second_line] + shifted_lines, n + u, p + 2, u // 2
+
+        # Two children.
+        left, n, p, x  = self.__visual(node.left)
+        right, m, q, y = self.__visual(node.right)
+        s = f'{node.data}'
+        u = len(s)
+        first_line = (x + 1) * ' ' + (n - x - 1) * '_' + s + y * '_' + (m - y) * ' '
+        second_line = x * ' ' + '/' + (n - x - 1 + u + y) * ' ' + '\\' + (m - y - 1) * ' '
+        if p < q:
+            left += [n * ' '] * (q - p)
+        elif q < p:
+            right += [m * ' '] * (p - q)
+        zipped_lines = zip(left, right)
+        lines = [first_line, second_line] + [a + u * ' ' + b for a, b in zipped_lines]
+        return lines, n + m + u, max(p, q) + 2, n + u // 2  
+        
     def __str__(self)->str:
         '''
         Returns a string representation of the tree in preorder traversal.
@@ -282,3 +379,75 @@ class BinaryTree:
         result += self.__preorderToStr(root.right)
         return result
 
+    def __contains__(self, key:any)->bool:
+        '''
+        Verifies if a key is present in the tree.
+        Method is called when the operator "in" is used.
+        '''
+        return self.search(key)
+    
+    def __iter__(self):
+        '''
+        Allow the tree to be iterated in preorder traversal.
+        '''
+        if self.__root is None:
+            self.__stack = []
+        else:
+            self.__stack = [self.__root]
+        return self
+
+    def __next__(self):
+        '''
+        Returns the next node in the iteration.
+        '''
+        if not self.__stack:
+            raise StopIteration
+        node = self.__stack.pop()
+        if node.right:
+            self.__stack.append(node.right)
+        if node.left:
+            self.__stack.append(node.left)
+        return node.data
+
+    def build(self,values:list[any]):
+        '''
+        Builds a binary tree from a list of values. This method inserts the values
+        in the tree in level order. Put None in the list to represent a missing node.
+        Precondition: the tree must be empty
+        Arguments
+        ---------
+        values (List[any]): the list of values to be inserted in 
+        the tree.
+
+        Example:
+        tree = BinaryTree()
+        tree.build([1,2,3,4,5,6,7,8,9,10])
+        print(tree)
+        '''
+        if not values or self.__root != None:
+            return None 
+
+        self.__root = Node(values[0])
+        self.__cursor = self.__root
+
+        # list of nodes to be processed
+        node_to_process = [self.__root]
+        # index to track the node's position inside the list
+        index = 1
+
+        while index < len(values) and node_to_process:
+            # remove the first node 
+            current_node = node_to_process.pop(0)
+
+            left_value = values[index]
+            if left_value is not None:
+                current_node.left = Node(left_value)
+                node_to_process.append(current_node.left)
+            index += 1
+
+            if index < len(values):
+                right_value = values[index]
+                if right_value is not None:
+                    current_node.right = Node(right_value)
+                    node_to_process.append(current_node.right)
+                index += 1
